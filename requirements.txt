@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+psycopg2-binary   # Si usas PostgreSQL
+pydantic
+python-dotenv     # Para cargar variables de entorno (config DB, etc)
+alembic           # Para migraciones de la BD
