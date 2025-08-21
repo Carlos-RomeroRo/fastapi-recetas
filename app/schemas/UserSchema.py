@@ -1,5 +1,4 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
 import enum
 
 class UserRole(enum.Enum):
@@ -16,7 +15,18 @@ class UserCreate(UserBase):
     password: str
 
 class UserUpdate(UserBase):
-    id:int
+    pass
+
+    class Config:
+        from_attributes = True
+
+class UserPatch(UserBase):
+    username: str | None = None
+    email: EmailStr | None = None
+    role: UserRole | None = None
+
+class UserResponse(UserBase):
+    id: int
 
     class Config:
         from_attributes = True
