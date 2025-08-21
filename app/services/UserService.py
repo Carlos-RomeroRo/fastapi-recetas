@@ -47,7 +47,12 @@ class UserService:
         if not db_user:
             return None
         
-        patch_data = User
+        patch_data = user.model_dump(exclude_unset=True)
+
+        for key,value in patch_data.items():
+            setattr(db_user, key, value)
+
+         
         
         self.db.commit()
         self.db.refresh(db_user)
