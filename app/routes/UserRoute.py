@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, JSONResponse
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from ...config import get_db
-from ..schemas.UserSchema import UserCreate, UserResponse, UserUpdate, UserPatch
-from ..services.UserService import UserService
+from config import get_db
+from app.schemas.UserSchema import UserCreate, UserResponse, UserUpdate, UserPatch, UserOut
+from app.services.UserService import UserService
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter()
 
 #Create Users
 
@@ -14,7 +14,7 @@ def createUser(User: UserCreate, db: Session = Depends(get_db)):
     return service.create_user(User)
    
 @router.get("/{user_id}", response_model=UserResponse)
-def getUser(user_id:int, db: Session = Depends(get_db)):
+def getUserById(user_id:int, db: Session = Depends(get_db)):
     service = UserService(db)
     return service.get_user_by_id(user_id)
 
@@ -24,4 +24,17 @@ def updateUser(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     return service.update_user(user_id, user)
     
 
-    
+@router.patch("/{user_id}", response_model=UserResponse)
+def patchUser(user_id: int, user: UserPatch, db: Session = Depends(get_db)):
+    service = UserService(db)
+    return service.user_patch(user_id, user)
+
+@router.delete("/{user_id}", response_model=UserResponse)
+def deleteUser(user_id: int, db: Session = Depends(get_db)):
+    service = UserService(db)
+    return service.delete_user(user_id)
+
+@router.get("/", response_model=list[UserOut])
+def getAllUsers(db: Session = Depends(get_db)):
+    service = UserService(db)
+    return service.get_all_users()

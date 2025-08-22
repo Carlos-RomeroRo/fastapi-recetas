@@ -1,8 +1,9 @@
-import enum
-from sqlalchemy import Column, Integer, String, Enum
-from ...config import Base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.types import Enum as SQLEnum  # <- renombrado
+from config import Base
+from enum import Enum 
 
-class UserRole(enum.Enum):
+class UserRole(str,Enum):
     LIDER = "lider"
     ADMINISTRADOR = "administrador"
     USUARIO = "usuario"
@@ -15,8 +16,10 @@ class UserModel(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     password = Column(String)
-    role = Column(Enum(UserRole), default=UserRole.USUARIO)
+    role = Column(SQLEnum(UserRole), default=UserRole.USUARIO)
 
-def __repr__(self):
-    return f"User(id={self.id}, username={self.username}, email={self.email}, role={self.value})"
+    def __repr__(self):
+        return f"User(id={self.id}, username={self.username}, email={self.email}, role={self.role})"
+
+
 

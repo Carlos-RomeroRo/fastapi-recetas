@@ -11,7 +11,7 @@ class UserService:
         new_user = UserModel(
             username=user.username,
             email=user.email,
-            role=user.role,
+            role=user.role.value,
             password=user.password 
         ) 
         try:
@@ -36,7 +36,7 @@ class UserService:
                 detail=f"Error al crear el usuario: {str(e)}"
             )
     
-    def update_user(self, user_id: int, user: UserUpdate) -> dict:
+    def update_user(self, user_id: int, user: UserUpdate) -> UserResponse:
         #1). Search user
         db_user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
         if not db_user:
@@ -52,38 +52,53 @@ class UserService:
         self.db.refresh(db_user)
 
         #4). return user with new information and message success
-        return UserResponse( message="Usuario encontrado", 
-                                        code=203, 
+        return UserResponse( message="Usuario actualizado correctamente", 
+                                        code=200, 
                                         user=UserOut.model_validate(db_user))   
     
-    def UserPatch(self, user_id: int, user: UserPatch) -> dict | None:
+    def user_patch(self, user_id: int, user: UserPatch) -> UserResponse:
         db_user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
         if not db_user:
-            return None
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
         
         patch_data = user.model_dump(exclude_unset=True)
 
         for key,value in patch_data.items():
             setattr(db_user, key, value)
 
-         
-        
         self.db.commit()
         self.db.refresh(db_user)
 
-        return {
-            "message": "Usuario actualizado parcialmente exitosamente",
-            "user": UserResponse.model_validate(db_user)
-        }
+        return UserResponse( message="Usuario actualizado correctamente", 
+                                        code=200, 
+                                        user=UserOut.model_validate(db_user)) 
+    
+
 
 
     def get_user_by_id(self, user_id: int) -> UserResponse:
         user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
         if not user:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        return UserResponse( message="Usuario encontrado", 
+            raise HTTPException(status_code=404, detail="Usuario no encontrado por ID")
+        return UserResponse( message="Usuario encontrado correctamente por ID", 
                                         code=200, 
-                                        user=UserOut.model_validate(user))     
+                                        user=UserOut.model_validate(user)) 
+
+    def delete_user (self, user_id:int) -> UserResponse:
+        user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado para eliminar")
+        
+        self.db.delete(user)
+        self.db.commit()
+        
+        return UserResponse( message="Usuario eliminado correctamente", 
+                                        code=200, 
+                                        user=None) 
+    
+    def get_all_users(self) -> list[UserOut]:
+        users = self.db.query(UserModel).all()
+        return [UserOut.model_validate(user) for user in users]  
 
 
         

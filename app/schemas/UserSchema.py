@@ -1,7 +1,7 @@
-from pydantic import BaseModel, EmailStr
-import enum
+from pydantic import BaseModel, EmailStr, field_validator
+from enum import Enum
 
-class UserRole(enum.Enum):
+class UserRole(str,Enum):
     LIDER = "lider"
     ADMINISTRADOR = "administrador"
     USUARIO = "usuario"
@@ -10,6 +10,12 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
     role: UserRole = UserRole.USUARIO
+
+    @field_validator('role', mode="before")
+    def normalize_role(cls, value):
+        if isinstance(value, str):
+            return value.lower()
+        return value
 
 class UserCreate(UserBase):
     password: str
@@ -35,7 +41,7 @@ class UserOut(UserBase):
 class UserResponse(BaseModel):
     message: str
     code: int
-    user: UserOut
+    user: UserOut | None
 
     class Config:
         from_attributes = True
