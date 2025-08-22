@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.types import Enum as SQLEnum  # <- renombrado
+from sqlalchemy.types import Enum as SQLEnum
 from config import Base
 from enum import Enum 
 

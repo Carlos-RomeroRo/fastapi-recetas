@@ -21,7 +21,7 @@ def get_db():
     finally:
         db.close()
 
-# 👇 Función para inicializar las tablas
+#Función para inicializar las tablas
 def init_db():
     # Importa aquí todos los modelos para que se registren
     from app.models import UserModel  
