@@ -25,8 +25,17 @@ class UserPatch(UserBase):
     email: EmailStr | None = None
     role: UserRole | None = None
 
-class UserResponse(UserBase):
+class UserOut(UserBase):
     id: int
+
+    class Config:
+        from_attributes = True
+
+
+class UserResponse(BaseModel):
+    message: str
+    code: int
+    user: UserOut
 
     class Config:
         from_attributes = True
