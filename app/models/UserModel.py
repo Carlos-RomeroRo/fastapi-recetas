@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 from sqlalchemy.types import Enum as SQLEnum
 from config import Base
 from enum import Enum 
@@ -17,6 +18,9 @@ class UserModel(Base):
     email = Column(String, unique=True, index=True)
     password = Column(String)
     role = Column(SQLEnum(UserRole), default=UserRole.USUARIO)
+
+    recipes = relationship("RecipeModel", back_populates="user", cascade="all, delete")
+    likes = relationship("LikeModel", back_populates="user", cascade="all, delete")
 
     def __repr__(self):
         return f"User(id={self.id}, username={self.username}, email={self.email}, role={self.role})"

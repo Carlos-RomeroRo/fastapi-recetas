@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from ..models.UserModel import UserModel
-from ..schemas.UserSchema import UserCreate, UserResponse, UserUpdate, UserPatch, UserOut
+from models.UserModel import UserModel
+from schemas.UserSchema import UserCreate, UserResponse, UserPatch, UserOut
 from fastapi import HTTPException
 class UserService:
     def __init__(self, db: Session):
@@ -36,60 +36,33 @@ class UserService:
                 detail=f"Error al crear el usuario: {str(e)}"
             )
     
-    def update_user(self, user_id: int, user: UserUpdate) -> UserResponse:
-        #1). Search user
-        db_user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
-        if not db_user:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        
-        # 2). Update data user
-        update_data = user.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(db_user, key, value)
-        
-        #3). Commit in the database
-        self.db.commit()
-        self.db.refresh(db_user)
-
-        #4). return user with new information and message success
-        return UserResponse( message="Usuario actualizado correctamente", 
-                                        code=200, 
-                                        user=UserOut.model_validate(db_user))   
-    
     def user_patch(self, user_id: int, user: UserPatch) -> UserResponse:
-        db_user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
-        if not db_user:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        user_model = self.get_user_or_404(user_id)
         
         patch_data = user.model_dump(exclude_unset=True)
 
         for key,value in patch_data.items():
-            setattr(db_user, key, value)
+            setattr(user_model, key, value)
 
         self.db.commit()
-        self.db.refresh(db_user)
+        self.db.refresh(user_model)
 
         return UserResponse( message="Usuario actualizado correctamente", 
                                         code=200, 
-                                        user=UserOut.model_validate(db_user)) 
+                                        user=UserOut.model_validate(user_model)) 
     
 
 
 
     def get_user_by_id(self, user_id: int) -> UserResponse:
-        user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado por ID")
+        user_model = self.get_user_or_404(user_id)
         return UserResponse( message="Usuario encontrado correctamente por ID", 
                                         code=200, 
-                                        user=UserOut.model_validate(user)) 
+                                        user=UserOut.model_validate(user_model)) 
 
     def delete_user (self, user_id:int) -> UserResponse:
-        user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado para eliminar")
-        
-        self.db.delete(user)
+        user_model = self.get_user_or_404(user_id)
+        self.db.delete(user_model)
         self.db.commit()
         
         return UserResponse( message="Usuario eliminado correctamente", 
@@ -101,4 +74,10 @@ class UserService:
         return [UserOut.model_validate(user) for user in users]  
 
 
+
+    def get_user_or_404 (self, user_id: int) -> UserModel:
+        user = self.db.query(UserModel).filter(UserModel.id==user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
         
+        return user

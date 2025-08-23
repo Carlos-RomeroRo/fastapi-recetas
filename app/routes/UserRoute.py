@@ -18,12 +18,6 @@ def getUserById(user_id:int, db: Session = Depends(get_db)):
     service = UserService(db)
     return service.get_user_by_id(user_id)
 
-@router.put("/{user_id}",response_model=UserResponse)
-def updateUser(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
-    service = UserService(db)
-    return service.update_user(user_id, user)
-    
-
 @router.patch("/{user_id}", response_model=UserResponse)
 def patchUser(user_id: int, user: UserPatch, db: Session = Depends(get_db)):
     service = UserService(db)
