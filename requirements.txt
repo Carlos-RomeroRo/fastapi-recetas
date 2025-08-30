@@ -6,3 +6,6 @@ pydantic
 python-dotenv     # Para cargar variables de entorno (config DB, etc)
 alembic           # Para migraciones de la BD
 email-validator
+python-jose #Para generar y verificar JWT
+passlib[bcrypt] #para hasehar las contraseñas
+

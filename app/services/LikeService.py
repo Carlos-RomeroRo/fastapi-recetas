@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from models.LikeModel import LikeModel
-from schemas.LikeSchema import LikePatch, LikeCreate, LikeOut, LikeResponse
+from app.models.LikeModel import LikeModel
+from app.schemas.LikeSchema import LikePatch, LikeCreate, LikeOut, LikeResponse
 from fastapi import HTTPException
 
 class LikeService:
@@ -55,3 +55,23 @@ class LikeService:
         return LikeResponse( message="Like encontrado correctamente por ID", 
                                         code=200, 
                                         like=LikeOut.model_validate(like_model))
+    
+    def get_all_likes(self) ->list[LikeOut]:
+        likes = self.db.query(LikeModel).all()
+        return [LikeOut.model_validate(like) for like in likes]
+   
+   
+    def delete_like (self, like_id:int) -> LikeResponse:
+        like_model = self.get_like_or_404(like_id)
+        self.db.delete(like_model)
+        self.db.commit()
+        return LikeResponse(message="Like eliminado correctamente", code=200, like=None)
+
+
+
+    def get_like_or_404 (self, recipe_id : int ) -> LikeModel:
+        like_model = self.db.query(LikeModel).filter(LikeModel.id == recipe_id).first()
+        if not like_model:
+            raise HTTPException(status_code=404, detail="Like no encontrado")
+        return like_model
+    

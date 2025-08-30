@@ -1,5 +1,8 @@
 from pydantic import BaseModel, EmailStr, field_validator
 from enum import Enum
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserRole(str,Enum):
     LIDER = "lider"
@@ -18,7 +21,12 @@ class UserBase(BaseModel):
         return value
 
 class UserCreate(UserBase):
+    email: EmailStr
     password: str
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password:str
 
 
     class Config:
@@ -31,6 +39,7 @@ class UserPatch(UserBase):
 
 class UserOut(UserBase):
     id: int
+    password: str
 
     class Config:
         from_attributes = True

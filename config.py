@@ -24,6 +24,6 @@ def get_db():
 #Función para inicializar las tablas
 def init_db():
     # Importa aquí todos los modelos para que se registren
-    from app.models import UserModel  
+    from app.models import UserModel, RecipeModel, LikeModel
     
     Base.metadata.create_all(bind=engine)

@@ -1,18 +1,23 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from models.UserModel import UserModel
-from schemas.UserSchema import UserCreate, UserResponse, UserPatch, UserOut
+from app.models.UserModel import UserModel
+from app.schemas.UserSchema import UserCreate, UserResponse, UserPatch, UserOut
 from fastapi import HTTPException
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 class UserService:
     def __init__(self, db: Session):
         self.db = db
     
     def create_user(self, user: UserCreate) -> UserResponse:
+        hashed_password = pwd_context.hash(user.password)
         new_user = UserModel(
             username=user.username,
             email=user.email,
             role=user.role.value,
-            password=user.password 
+            password=hashed_password
         ) 
         try:
             self.db.add(new_user)

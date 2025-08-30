@@ -21,13 +21,13 @@ class RecipePatch(RecipeBase):
     title: Optional[str] = None
     ingredients: Optional[str] = None
     instructions: Optional[str] = None
-    preparation_time: Optional[str] = None
+    preparation_time: Optional[int] = None
     photo: Optional[str] = None
 
 class RecipeOut(RecipeBase):
     id: int
     user_id: int
-    likes_count: str
+    likes_count: str | None = None
 
     class Config:
         from_attributes = True

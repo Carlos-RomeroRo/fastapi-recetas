@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from models.RecipeModel import RecipeModel
-from schemas.RecipeSchema import RecipeCreate, RecipeOut, RecipePatch, RecipeResponse 
+from app.models.RecipeModel import RecipeModel
+from app.schemas.RecipeSchema import RecipeCreate, RecipeOut, RecipePatch, RecipeResponse 
 from fastapi import HTTPException
 
 class RecipeService:
@@ -14,7 +14,6 @@ class RecipeService:
             ingredients = recipe.ingredients,
             instructions = recipe.instructions,
             preparation_time = recipe.preparation_time,
-            created_at = recipe.created_at,
             photo = recipe.photo,
             user_id = user_id
         )
@@ -41,7 +40,7 @@ class RecipeService:
                 detail=f"Error al crear la receta: {str(e)}"
             )
 
-    def patch_recipe (self, recipe_id: int, recipe: RecipePatch) -> RecipeResponse:
+    def recipe_patch (self, recipe_id: int, recipe: RecipePatch) -> RecipeResponse:
         db_recipe = self.get_recipe_or_404(recipe_id)
         update_data = recipe.model_dump(exclude_unset=True)
         for key, value in update_data.items():
@@ -64,10 +63,9 @@ class RecipeService:
         db_recipe = self.get_recipe_or_404(recipe_id)
         return RecipeResponse(message="Receta encontrada correctamente", code=200, recipe=RecipeOut.model_validate(db_recipe))
     
-    def get_all_recipes(self) -> RecipeResponse:
-        db_recipes = self.db.query(RecipeModel).all()
-        recipes_out = [RecipeOut.model_validate(recipe) for recipe in db_recipes]
-        return RecipeResponse(message="Recetas obtenidas correctamente", code=200, recipe=recipes_out)
+    def get_all_recipes(self) -> list[RecipeOut]:
+        recipes = self.db.query(RecipeModel).all()
+        return [RecipeOut.model_validate(recipe) for recipe in recipes]
     
     def get_recipe_or_404 (self, recipe_id: int) -> RecipeModel:
         db_recipe = self.db.query(RecipeModel).filter(RecipeModel.id==recipe_id).first()
