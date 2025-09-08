@@ -9,6 +9,16 @@ class RecipeService:
         self.db = db
     
     def create_recipe(self, recipe: RecipeCreate, user_id: int) -> RecipeResponse:
+
+        # 1. Verificar si el usuario existe
+        user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"El usuario con id {user_id} no existe"
+            )
+
+
         new_recipe = RecipeModel(
             title = recipe.title,
             ingredients = recipe.ingredients,

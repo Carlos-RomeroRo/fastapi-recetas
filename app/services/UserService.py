@@ -4,12 +4,13 @@ from app.models.UserModel import UserModel
 from app.schemas.UserSchema import UserCreate, UserResponse, UserPatch, UserOut
 from fastapi import HTTPException
 from passlib.context import CryptContext
+from app.repository.UserRepository import UserRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserService:
     def __init__(self, db: Session):
-        self.db = db
+        self.repo = UserRepository(db)
     
     def create_user(self, user: UserCreate) -> UserResponse:
         hashed_password = pwd_context.hash(user.password)
@@ -20,13 +21,11 @@ class UserService:
             password=hashed_password
         ) 
         try:
-            self.db.add(new_user)
-            self.db.commit()
-            self.db.refresh(new_user)
+            create_user = self.repo.create(new_user)
             return UserResponse(
                 message = "Usuario creado exitosamente",
                 code = 201,
-                user = UserOut.model_validate(new_user)
+                user = UserOut.model_validate(create_user)
             )
         except IntegrityError:
             self.db.rollback()
