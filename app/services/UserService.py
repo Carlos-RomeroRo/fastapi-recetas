@@ -28,13 +28,13 @@ class UserService:
                 user = UserOut.model_validate(create_user)
             )
         except IntegrityError:
-            self.db.rollback()
+            self.repo.db.rollback()
             raise HTTPException(
                 status_code=409,
                 detail="El usuario ya existe con ese nombre de usuario o correo electrónico"
             )
         except Exception as e:
-            self.db.rollback()
+            self.repo.db.rollback()
             raise HTTPException(
                 status_code=500,
                 detail=f"Error al crear el usuario: {str(e)}"
@@ -42,15 +42,12 @@ class UserService:
     
     def user_patch(self, user_id: int, user: UserPatch) -> UserResponse:
         user_model = self.get_user_or_404(user_id)
-        
         patch_data = user.model_dump(exclude_unset=True)
 
         for key,value in patch_data.items():
             setattr(user_model, key, value)
 
-        self.db.commit()
-        self.db.refresh(user_model)
-
+        self.repo.update(user_model) # update method from BaseRepository
         return UserResponse( message="Usuario actualizado correctamente", 
                                         code=200, 
                                         user=UserOut.model_validate(user_model)) 
@@ -66,22 +63,20 @@ class UserService:
 
     def delete_user (self, user_id:int) -> UserResponse:
         user_model = self.get_user_or_404(user_id)
-        self.db.delete(user_model)
-        self.db.commit()
+        self.repo.delete(user_model)
         
         return UserResponse( message="Usuario eliminado correctamente", 
                                         code=200, 
                                         user=None) 
     
     def get_all_users(self) -> list[UserOut]:
-        users = self.db.query(UserModel).all()
+        users = self.repo.get_all()
         return [UserOut.model_validate(user) for user in users]  
 
 
 
     def get_user_or_404 (self, user_id: int) -> UserModel:
-        user = self.db.query(UserModel).filter(UserModel.id==user_id).first()
+        user = self.repo.get_by_id(user_id)
         if not user:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
-        
         return user
